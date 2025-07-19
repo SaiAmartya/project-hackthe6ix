@@ -22,6 +22,14 @@ export default function Dashboard() {
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt' | 'unknown'>('unknown');
   const [messages, setMessages] = useState<MessageData[]>([]);
+  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
+  const [mapUrl, setMapUrl] = useState('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d184552.2245834942!2d-79.5428656837306!3d43.71837093300166!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89d4cb90d7c63ba5%3A0x323555502ab4c477!2sToronto%2C%20ON%2C%20Canada!5e0!3m2!1sen!2sus!4v1703825432123!5m2!1sen!2sus');
+
+  const generateMapUrlFallback = (latitude: number, longitude: number) => {
+    // Generate a Google Maps embed URL centered on the user's location
+    const zoom = 15;
+    return `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d11547.0!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f${zoom}.1!5e0!3m2!1sen!2sus`;
+  };
 
   // Check location permission status on component mount
   useEffect(() => {
@@ -40,6 +48,26 @@ export default function Dashboard() {
         });
     }
   }, []);
+
+  // Get user location when permission is granted
+  useEffect(() => {
+    if (locationPermission === 'granted' && !currentLocation) {
+      getCurrentLocation()
+        .then((location) => {
+          setCurrentLocation(location);
+          const newMapUrl = generateMapUrlFallback(location.latitude, location.longitude);
+          setMapUrl(newMapUrl);
+          console.log('Map centered on user location:', {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            mapUrl: newMapUrl
+          });
+        })
+        .catch((error) => {
+          console.log('Could not get initial location for map:', error.message);
+        });
+    }
+  }, [locationPermission, currentLocation]);
 
   // Debug: Add function to view stored messages (can be removed in production)
   useEffect(() => {
@@ -120,6 +148,15 @@ export default function Dashboard() {
       const location = await getCurrentLocation();
       messageData.location = location;
       
+      // Update current location state and map if it's different
+      if (!currentLocation || 
+          Math.abs(currentLocation.latitude - location.latitude) > 0.001 ||
+          Math.abs(currentLocation.longitude - location.longitude) > 0.001) {
+        setCurrentLocation(location);
+        const newMapUrl = generateMapUrlFallback(location.latitude, location.longitude);
+        setMapUrl(newMapUrl);
+      }
+      
       console.log('Message sent with location:', {
         message: messageData.message,
         location: {
@@ -197,7 +234,7 @@ export default function Dashboard() {
         <div className="flex-1 relative mx-4 md:mx-6 mb-4 rounded-2xl overflow-hidden shadow-2xl border border-emerald-100">
           {/* Map iframe */}
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d184552.2245834942!2d-79.5428656837306!3d43.71837093300166!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89d4cb90d7c63ba5%3A0x323555502ab4c477!2sToronto%2C%20ON%2C%20Canada!5e0!3m2!1sen!2sus!4v1703825432123!5m2!1sen!2sus"
+            src={mapUrl}
             width="100%"
             height="100%"
             style={{ border: 0 }}
@@ -205,9 +242,30 @@ export default function Dashboard() {
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
             className="absolute inset-0"
+            title="Interactive Map"
           ></iframe>
           
-
+          {/* Location indicator overlay */}
+          {currentLocation && (
+            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg border border-emerald-200">
+              <div className="flex items-center space-x-2 text-sm">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span className="text-emerald-700 font-medium">Your Location</span>
+              </div>
+            </div>
+          )}
+          
+          {/* Loading indicator for map updates */}
+          {isGettingLocation && (
+            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg border border-blue-200">
+              <div className="flex items-center space-x-2 text-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2 animate-spin text-blue-600">
+                  <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                </svg>
+                <span className="text-blue-700 font-medium">Updating...</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Enhanced Chat Interface */}
@@ -223,7 +281,7 @@ export default function Dashboard() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-emerald-800 text-base md:text-lg">AI Assistant</h3>
+                    <h3 className="font-semibold text-emerald-800 text-base md:text-lg">Lively AI</h3>
                     <p className="text-xs md:text-sm text-gray-600">Ask me about resources, locations, or support services</p>
                   </div>
                 </div>
@@ -311,13 +369,13 @@ export default function Dashboard() {
               {/* Quick Actions */}
               <div className="mt-4 md:mt-6 flex flex-wrap gap-2 md:gap-3 justify-center sm:justify-start">
                 <button 
-                  onClick={() => setMessage("Find shelters near me")}
+                  onClick={() => setMessage("Where can I stay tonight?")}
                   className="px-3 py-1.5 md:px-4 md:py-2 bg-emerald-100 text-emerald-700 rounded-full text-xs md:text-sm font-medium hover:bg-emerald-200 transition-colors"
                 >
                   Find Shelters
                 </button>
                 <button 
-                  onClick={() => setMessage("Show food banks")}
+                  onClick={() => setMessage("Where can I eat for lunch?")}
                   className="px-3 py-1.5 md:px-4 md:py-2 bg-blue-100 text-blue-700 rounded-full text-xs md:text-sm font-medium hover:bg-blue-200 transition-colors"
                 >
                   Food Banks
