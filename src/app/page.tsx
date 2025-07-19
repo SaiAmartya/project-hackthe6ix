@@ -88,7 +88,7 @@ export default function Home() {
                 
                 {/* Main CTA Button - Relocated here */}
                 <div className="pt-4">
-                  <Link href="/dashboard" className="inline-block group">
+                  <Link href="/dashboard" className="inline-block group mb-0">
                     <button className="relative px-12 py-4 md:px-16 md:py-5 bg-gradient-to-r from-emerald-600 to-green-700 text-white font-bold text-lg md:text-xl rounded-2xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 overflow-hidden">
                       {/* Button shine effect */}
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -102,18 +102,34 @@ export default function Home() {
                     </button>
                   </Link>
                 </div>
+                <div className="pt-4">
+                  <Link href="/donatedash" className="inline-block group mt-0">
+                    <button className="relative px-12 py-4 md:px-16 md:py-5 bg-gray-700 text-white font-bold text-lg md:text-xl rounded-2xl shadow-2xl hover:shadow-gray-400/25 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 overflow-hidden">
+                      {/* Button shine effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                      <span className="relative flex items-center space-x-3">
+                        <span>Donate Resources😊</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2 transition-transform group-hover:translate-x-1">
+                          <path d="M5 12h14"/>
+                          <path d="M12 5l7 7-7 7"/>
+                        </svg>
+                      </span>
+                    </button>
+                  </Link>
+
+                </div>
               </div>
             </div>
 
             {/* Tagline and description */}
             <div className="space-y-6 max-w-4xl mx-auto">
               <p className="text-xl md:text-2xl font-semibold text-emerald-800 leading-relaxed">
-                AI-Powered Shelter & Food Bank Locator
+                AI-Powered Resource Locator
               </p>
               <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-                Connecting those in need with essential resources in Toronto. 
-                Find nearby shelters, food banks, and support services with intelligent, 
-                compassionate technology.
+                Connecting those in need with <b>essential resources</b> in Toronto. 
+                Find nearby shelters, food banks, and various resource, using <b>intelligent, 
+                compassionate </b>technology tailored to your needs.
               </p>
             </div>
 
