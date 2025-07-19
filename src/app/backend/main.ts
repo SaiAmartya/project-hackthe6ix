@@ -1,7 +1,8 @@
-import { Handler } from "./lib/controller/route";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { Handler } = require("./lib/controller/route");
 
-const apiKey = process.env
-const promptDeploymentName = process.env
+const apiKey = process.env.VELLUM_API_KEY || ""
+const promptDeploymentName = process.env.WORKFLOWID || process.env.ALTWORKFLOWID || "";
 
 const handler = new Handler(apiKey, promptDeploymentName)
 

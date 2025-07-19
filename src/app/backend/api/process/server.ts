@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Handler } from '../../lib/controller/route';
+import { Handler } from '../../lib/controller/route.js';
 
-const apiKey = process.env.VELLUM_API_KEY || 'your-api-key';
-const workflowID = process.env.WORKFLOW_ID || 'your-workflow-id';
+const apiKey = process.env.VELLUM_API_KEY || ""
+const workflowID = process.env.WORKFLOWID || process.env.ALTWORKFLOWID || "";
 const handler = new Handler(apiKey, workflowID);
 
 export async function POST(request: NextRequest) {
