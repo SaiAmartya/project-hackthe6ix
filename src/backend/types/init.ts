@@ -5,5 +5,6 @@ export interface Req {
 
 export interface Res {
   data: string | null
-  status: 'success' | "error" | "null"
+  status: 'success' | "error",
+  message?: string
 }
