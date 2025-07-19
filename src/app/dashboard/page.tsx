@@ -1,6 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import * as dotenv from 'dotenv';
+import EnhancedMap from './components/EnhancedMap';
+
 
 interface LocationData {
   latitude: number;
@@ -39,6 +42,7 @@ export default function Dashboard() {
   const [serviceLocations, setServiceLocations] = useState<ServiceLocation[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<ServiceLocation | null>(null);
   const [mapUrl, setMapUrl] = useState('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d184552.2245834942!2d-79.5428656837306!3d43.71837093300166!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89d4cb90d7c63ba5%3A0x323555502ab4c477!2sToronto%2C%20ON%2C%20Canada!5e0!3m2!1sen!2sus!4v1703825432123!5m2!1sen!2sus');
+  const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_API_KEY || '';
 
   const generateMapUrlFallback = (latitude: number, longitude: number) => {
     // Generate a Google Maps embed URL centered on the user's location
@@ -46,6 +50,7 @@ export default function Dashboard() {
     return `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d11547.0!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f${zoom}.1!5e0!3m2!1sen!2sus`;
   };
 
+  dotenv.config();
   // Function to geocode an address using a public API
   const geocodeAddress = async (address: string, postalCode: string): Promise<{ latitude: number; longitude: number } | null> => {
     try {
@@ -356,19 +361,27 @@ export default function Dashboard() {
         <div className="flex flex-1 mx-4 md:mx-6 mb-4 space-x-4">
           {/* Map Container */}
           <div className="flex-1 relative rounded-2xl overflow-hidden shadow-2xl border border-emerald-100">
-            {/* Map iframe */}
-            <iframe
-              src={mapUrl}
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="absolute inset-0"
-              title="Interactive Map"
-            ></iframe>
-            
+            <div className="flex-1 relative rounded-2xl overflow-hidden shadow-2xl border border-emerald-100">
+      <EnhancedMap
+        serviceLocations={serviceLocations}
+        currentLocation={currentLocation}
+        selectedLocation={selectedLocation}
+        onLocationSelect={setSelectedLocation}
+        apiKey={GOOGLE_MAPS_API_KEY}
+      />
+      
+      {/* Loading indicator for map updates */}
+      {isGettingLocation && (
+        <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg border border-blue-200">
+          <div className="flex items-center space-x-2 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2 animate-spin text-blue-600">
+              <path d="M21 12a9 9 0 11-6.219-8.56"/>
+            </svg>
+            <span className="text-blue-700 font-medium">Updating...</span>
+          </div>
+        </div>
+      )}
+    </div>
             {/* Location indicators overlay */}
             {serviceLocations.length > 0 && (
               <div className="absolute top-4 left-4 space-y-2 max-h-[50%] overflow-y-auto">
