@@ -1,0 +1,20 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .heart { fill: #ffffff; }
+      .hands { fill: #ffffff; opacity: 0.9; }
+    </style>
+  </defs>
+  
+  <!-- Heart shape -->
+  <path class="heart" d="M100 175l-12.5-11.25C62.5 135 25 110 25 75c0-25 20-45 45-45 14.5 0 28.5 7 37.5 18C116.5 37 130.5 30 145 30c25 0 45 20 45 45 0 35-37.5 60-62.5 88.75L100 175z"/>
+  
+  <!-- Hands overlay -->
+  <g class="hands">
+    <path d="M85 90h10v15H85z"/>
+    <path d="M105 90h10v15h-10z"/>
+    <path d="M75 95h40v5H75z"/>
+    <circle cx="90" cy="85" r="8"/>
+    <circle cx="110" cy="85" r="8"/>
+  </g>
+</svg> 
