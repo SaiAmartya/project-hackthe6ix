@@ -17,18 +17,131 @@ interface MessageData {
   id: string;
 }
 
+interface ServiceLocation {
+  LOCATION_NAME: string;
+  LOCATION_ADDRESS: string;
+  LOCATION_POSTAL_CODE: string;
+  REASONING: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+interface LocationsData {
+  locations: ServiceLocation[];
+}
+
 export default function Dashboard() {
   const [message, setMessage] = useState('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt' | 'unknown'>('unknown');
   const [messages, setMessages] = useState<MessageData[]>([]);
   const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
+  const [serviceLocations, setServiceLocations] = useState<ServiceLocation[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<ServiceLocation | null>(null);
   const [mapUrl, setMapUrl] = useState('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d184552.2245834942!2d-79.5428656837306!3d43.71837093300166!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89d4cb90d7c63ba5%3A0x323555502ab4c477!2sToronto%2C%20ON%2C%20Canada!5e0!3m2!1sen!2sus!4v1703825432123!5m2!1sen!2sus');
 
   const generateMapUrlFallback = (latitude: number, longitude: number) => {
     // Generate a Google Maps embed URL centered on the user's location
     const zoom = 15;
     return `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d11547.0!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f${zoom}.1!5e0!3m2!1sen!2sus`;
+  };
+
+  // Function to geocode an address using a public API
+  const geocodeAddress = async (address: string, postalCode: string): Promise<{ latitude: number; longitude: number } | null> => {
+    try {
+      const fullAddress = `${address}, ${postalCode}, Toronto, ON, Canada`;
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`);
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        return {
+          latitude: parseFloat(data[0].lat),
+          longitude: parseFloat(data[0].lon)
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return null;
+    }
+  };
+
+  // Function to generate map URL with multiple markers
+  const generateMapUrlWithMarkers = (locations: ServiceLocation[], centerLat?: number, centerLon?: number) => {
+    const validLocations = locations.filter(loc => loc.latitude && loc.longitude);
+    if (validLocations.length === 0) return mapUrl;
+
+    // Use provided center or center on first location
+    const centerLatitude = centerLat || validLocations[0].latitude!;
+    const centerLongitude = centerLon || validLocations[0].longitude!;
+    
+    // Create markers string for Google Maps
+    let markersString = '';
+    validLocations.forEach((location, index) => {
+      if (location.latitude && location.longitude) {
+        markersString += `&markers=color:green%7Clabel:${index + 1}%7C${location.latitude},${location.longitude}`;
+      }
+    });
+
+    const zoom = validLocations.length > 1 ? 12 : 15;
+    return `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d11547.0!2d${centerLongitude}!3d${centerLatitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f${zoom}.1!5e0!3m2!1sen!2sus${markersString}`;
+  };
+
+  // Function to center map on specific location
+  const centerMapOnLocation = (location: ServiceLocation) => {
+    if (location.latitude && location.longitude) {
+      const newMapUrl = generateMapUrlWithMarkers(serviceLocations, location.latitude, location.longitude);
+      setMapUrl(newMapUrl);
+      setSelectedLocation(location);
+    }
+  };
+
+  // Function to display locations on the map
+  const displayLocationsOnMap = async (locationsData: LocationsData) => {
+    const locationsWithCoords: ServiceLocation[] = [];
+    
+    // Geocode all locations
+    for (const location of locationsData.locations) {
+      const coords = await geocodeAddress(location.LOCATION_ADDRESS, location.LOCATION_POSTAL_CODE);
+      locationsWithCoords.push({
+        ...location,
+        latitude: coords?.latitude,
+        longitude: coords?.longitude
+      });
+    }
+    
+    setServiceLocations(locationsWithCoords);
+    
+    // Generate map URL with all markers
+    const newMapUrl = generateMapUrlWithMarkers(locationsWithCoords);
+    setMapUrl(newMapUrl);
+  };
+
+  // Function to add locations (can be called from outside)
+  const addServiceLocations = async (locationsData: LocationsData) => {
+    await displayLocationsOnMap(locationsData);
+  };
+
+  // Example usage function for testing
+  const loadSampleLocations = async () => {
+    const sampleData: LocationsData = {
+      locations: [
+        {
+          "LOCATION_NAME": "COSTI Immigrant Services",
+          "LOCATION_ADDRESS": "640 Dixon Rd.",
+          "LOCATION_POSTAL_CODE": "M9W 1J1",
+          "REASONING": "this is some sample reasoning… hopefully it's displayed properly."
+        },
+        {
+          "LOCATION_NAME": "351 Lakeshore Respite Services",
+          "LOCATION_ADDRESS": "195 Princes' Blvd",
+          "LOCATION_POSTAL_CODE": "M6K 3C3",
+          "REASONING": "this is some sample reasoning… hopefully it's displayed properly."
+        }
+      ]
+    };
+    
+    await addServiceLocations(sampleData);
   };
 
   // Check location permission status on component mount
@@ -75,6 +188,8 @@ export default function Dashboard() {
       interface WindowWithDebug extends Window {
         viewStoredMessages?: () => MessageData[];
         clearStoredMessages?: () => void;
+        addServiceLocations?: (data: LocationsData) => Promise<void>;
+        loadSampleLocations?: () => Promise<void>;
       }
       const windowWithDebug = window as WindowWithDebug;
       
@@ -86,6 +201,8 @@ export default function Dashboard() {
         setMessages([]);
         console.log('Messages cleared');
       };
+      windowWithDebug.addServiceLocations = addServiceLocations;
+      windowWithDebug.loadSampleLocations = loadSampleLocations;
     }
   }, [messages]);
 
@@ -220,6 +337,12 @@ export default function Dashboard() {
           </Link>
           
           <div className="flex items-center space-x-4">
+            <button 
+              onClick={loadSampleLocations}
+              className="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors"
+            >
+              Load Sample Locations
+            </button>
             <div className="flex items-center space-x-2 text-sm text-emerald-700/80">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
               <span>Live Support</span>
@@ -230,39 +353,113 @@ export default function Dashboard() {
 
       {/* Main Content Area */}
       <div className="relative z-10 flex-1 flex flex-col h-[calc(100vh-80px)]">
-        {/* Map Container */}
-        <div className="flex-1 relative mx-4 md:mx-6 mb-4 rounded-2xl overflow-hidden shadow-2xl border border-emerald-100">
-          {/* Map iframe */}
-          <iframe
-            src={mapUrl}
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            className="absolute inset-0"
-            title="Interactive Map"
-          ></iframe>
-          
-          {/* Location indicator overlay */}
-          {currentLocation && (
-            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg border border-emerald-200">
-              <div className="flex items-center space-x-2 text-sm">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-emerald-700 font-medium">Your Location</span>
+        <div className="flex flex-1 mx-4 md:mx-6 mb-4 space-x-4">
+          {/* Map Container */}
+          <div className="flex-1 relative rounded-2xl overflow-hidden shadow-2xl border border-emerald-100">
+            {/* Map iframe */}
+            <iframe
+              src={mapUrl}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="absolute inset-0"
+              title="Interactive Map"
+            ></iframe>
+            
+            {/* Location indicators overlay */}
+            {serviceLocations.length > 0 && (
+              <div className="absolute top-4 left-4 space-y-2 max-h-[50%] overflow-y-auto">
+                {serviceLocations.map((location, index) => (
+                  <button
+                    key={index}
+                    onClick={() => centerMapOnLocation(location)}
+                    className="block bg-emerald-600 text-white px-3 py-2 rounded-lg shadow-lg hover:bg-emerald-700 transition-colors text-sm font-medium max-w-xs"
+                  >
+                    📍 {location.LOCATION_NAME}
+                  </button>
+                ))}
               </div>
-            </div>
-          )}
-          
-          {/* Loading indicator for map updates */}
-          {isGettingLocation && (
-            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg border border-blue-200">
-              <div className="flex items-center space-x-2 text-sm">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2 animate-spin text-blue-600">
-                  <path d="M21 12a9 9 0 11-6.219-8.56"/>
-                </svg>
-                <span className="text-blue-700 font-medium">Updating...</span>
+            )}
+            
+            {/* Current location indicator overlay */}
+            {currentLocation && (
+              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg border border-emerald-200">
+                <div className="flex items-center space-x-2 text-sm">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="text-emerald-700 font-medium">Your Location</span>
+                </div>
+              </div>
+            )}
+            
+            {/* Loading indicator for map updates */}
+            {isGettingLocation && (
+              <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg border border-blue-200">
+                <div className="flex items-center space-x-2 text-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2 animate-spin text-blue-600">
+                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                  </svg>
+                  <span className="text-blue-700 font-medium">Updating...</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Side Panel for Location Details */}
+          {selectedLocation && (
+            <div className="w-80 bg-white/90 backdrop-blur-sm rounded-2xl border border-emerald-100 shadow-2xl p-6 overflow-y-auto">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-emerald-600">
+                  {selectedLocation.LOCATION_NAME}
+                </h2>
+                <button
+                  onClick={() => setSelectedLocation(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-1">Address</h3>
+                  <p className="text-gray-800">
+                    {selectedLocation.LOCATION_ADDRESS}
+                    <br />
+                    {selectedLocation.LOCATION_POSTAL_CODE}
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-2">Why This Location</h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    {selectedLocation.REASONING}
+                  </p>
+                </div>
+                
+                <div className="pt-4 border-t border-gray-200 space-y-2">
+                  <button 
+                    onClick={() => centerMapOnLocation(selectedLocation)}
+                    className="w-full bg-emerald-600 text-white py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+                  >
+                    Center on Map
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (selectedLocation.latitude && selectedLocation.longitude) {
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitude},${selectedLocation.longitude}`, '_blank');
+                      }
+                    }}
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    Get Directions
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -422,4 +619,4 @@ export default function Dashboard() {
       </div>
     </div>
   );
-} 
+}
