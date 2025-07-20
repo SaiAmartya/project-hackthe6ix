@@ -130,6 +130,7 @@ export default function Dashboard() {
               <div className="bg-gradient-to-r from-emerald-600 to-green-700 rounded-xl md:rounded-2xl p-3 md:p-4 shadow-xl md:shadow-2xl h-full">
                 <div className="flex justify-center items-center space-x-8 md:space-x-12 h-full">
                   {/* Resources Icon */}
+                  <a href='/resources'>
                   <button className="w-10 h-10 md:w-12 md:h-12 bg-white/20 backdrop-blur-sm rounded-lg md:rounded-xl flex items-center justify-center cursor-pointer hover:bg-white/30 transition-all hover:scale-105 group">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-white stroke-2 group-hover:scale-110 transition-transform md:w-6 md:h-6">
                       <path d="M21 8v13H3V8"/>
@@ -138,15 +139,19 @@ export default function Dashboard() {
                       <path d="M14 12v6"/>
                     </svg>
                   </button>
+                  </a>
 
                   {/* Home Icon - Active */}
+                  <a href='/dashboard'>
                   <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl md:shadow-2xl border-4 border-white/30">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" className="text-emerald-600 md:w-8 md:h-8">
                       <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
                     </svg>
                   </div>
+                  </a>
 
                   {/* Info Icon */}
+                  <a href='/info'>
                   <button className="w-10 h-10 md:w-12 md:h-12 bg-white/20 backdrop-blur-sm rounded-lg md:rounded-xl flex items-center justify-center cursor-pointer hover:bg-white/30 transition-all hover:scale-105 group">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-white stroke-2 group-hover:scale-110 transition-transform md:w-6 md:h-6">
                       <circle cx="12" cy="12" r="10"/>
@@ -154,6 +159,7 @@ export default function Dashboard() {
                       <path d="M12 8h.01"/>
                     </svg>
                   </button>
+                  </a>
                 </div>
               </div>
             </div>

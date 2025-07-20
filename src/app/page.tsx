@@ -102,22 +102,6 @@ export default function Home() {
                     </button>
                   </Link>
                 </div>
-                <div className="pt-4">
-                  <Link href="/donatedash" className="inline-block group mt-0">
-                    <button className="relative px-12 py-4 md:px-16 md:py-5 bg-gray-700 text-white font-bold text-lg md:text-xl rounded-2xl shadow-2xl hover:shadow-gray-400/25 transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 overflow-hidden">
-                      {/* Button shine effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                      <span className="relative flex items-center space-x-3">
-                        <span>Donate Resources😊</span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2 transition-transform group-hover:translate-x-1">
-                          <path d="M5 12h14"/>
-                          <path d="M12 5l7 7-7 7"/>
-                        </svg>
-                      </span>
-                    </button>
-                  </Link>
-
-                </div>
               </div>
             </div>
 
