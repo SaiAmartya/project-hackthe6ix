@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await handler.MessageHandler(userInput);
+    const location = "Toronto"; // Default 
+    const result = await handler.MessageHandler(userInput, location);
     return NextResponse.json(result);
 
   } catch (error) {
