@@ -557,7 +557,8 @@ export default function Dashboard() {
             <div className="bg-gradient-to-r from-emerald-600 to-green-700 rounded-2xl p-4 shadow-2xl">
               <div className="flex justify-center items-center space-x-12">
                 {/* Resources Icon */}
-                <button className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center cursor-pointer hover:bg-white/30 transition-all hover:scale-105 group">
+                <a href="/resources">
+                <button className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center cursor-pointer hover:bg-white/30 transition-all hover:scale-105 group" >
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-white stroke-2 group-hover:scale-110 transition-transform">
                     <path d="M21 8v13H3V8"/>
                     <path d="M1 3h22l-2 5H3l-2-5z"/>
@@ -565,15 +566,19 @@ export default function Dashboard() {
                     <path d="M14 12v6"/>
                   </svg>
                 </button>
+                </a>
 
                 {/* Home Icon - Active */}
-                <div className="w-18 h-18 bg-white rounded-2xl flex items-center justify-center shadow-2xl border-4 border-white/30">
+                <a href="/dashboard">
+                <button className="w-18 h-18 bg-white rounded-2xl flex items-center justify-center shadow-2xl border-4 border-white/30">
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" className="text-emerald-600">
                     <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
                   </svg>
-                </div>
+                </button>
+                </a>
 
                 {/* Info Icon */}
+                <a href='/info'>
                 <button className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center cursor-pointer hover:bg-white/30 transition-all hover:scale-105 group">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-white stroke-2 group-hover:scale-110 transition-transform">
                     <circle cx="12" cy="12" r="10"/>
@@ -581,6 +586,7 @@ export default function Dashboard() {
                     <path d="M12 8h.01"/>
                   </svg>
                 </button>
+                </a>
               </div>
             </div>
           </div>
