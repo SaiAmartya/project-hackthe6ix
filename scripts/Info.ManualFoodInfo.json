@@ -1,0 +1,348 @@
+[{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daa3"
+  },
+  "name": "Allan Gardens Food Bank",
+  "address": "353 Sherbourne St",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M5A 2S3",
+  "phone_number": "416-604-5788",
+  "days": "Thursday-Friday",
+  "hours": "12:30PM-3:00PM",
+  "notes": ""
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daa4"
+  },
+  "name": "Bethany Church Food Bank",
+  "address": "1041 Pape Ave",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": " M4K 3W1",
+  "phone_number": "416-479-0015 ext 202",
+  "days": "Thursday",
+  "hours": "1:15PM-3:00PM",
+  "notes": "households of 5 people or more -- 1:15 pm households of 4 people -- 1: 45 pm households of 3 people -- 2 pm households of 2 people -- 2: 20 pm"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daa5"
+  },
+  "name": "Bloor West Food Bank",
+  "address": "2305 Bloor St W",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M6R 1L5",
+  "phone_number": "",
+  "days": "Friday 11:00AM-3:00PM"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daa6"
+  },
+  "name": "Christ Church St James Anglican Church Food Pantry",
+  "address": "194 Park Lawn Rd",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M8Y 3J1",
+  "phone_number": "416-251-8711",
+  "days": "Wednesday & Saturday",
+  "hours": "1:00PM-5:30PM",
+  "notes": "Last 2 Wednesdays of every month, 1 pm-5:30 pm, also second Saturday of every month, 10 am-2 pm"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daa7"
+  },
+  "name": "Christie Ossington Neighbourhood Centre - Bloor Street Drop-in",
+  "address": "850 and 854 Bloor St W",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M6G 1M2",
+  "phone_number": "416-792-8941",
+  "days": "Monday-Saturday",
+  "hours": "10:00AM-4:00PM",
+  "notes": ""
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daa8"
+  },
+  "name": "Christie Ossington Neighbourhood Centre - Bloor Street Food Access Program",
+  "address": "850 and 854 Bloor St W",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M6G 1M2",
+  "phone_number": "416-792-8941",
+  "days": "Monday-Saturday",
+  "hours": "12:00PM-1:00PM",
+  "notes": ""
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daa9"
+  },
+  "name": "Churches on the Hill Food Bank - Timothy Eaton Memorial Church",
+  "address": "230 St Clair Ave W",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M4V 1R5",
+  "phone_number": "416-967-3842",
+  "days": "Monday & Wednesday",
+  "hours": "Mon 6:00PM-8:00PM, Wed 10:30AM-12:30AM",
+  "notes": "Call to pre-register, or register online, In-person registration is not available, all clients must be pre-registered before arrival"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daaa"
+  },
+  "name": "College-Montrose Children's Place - Cooper Mills-Gooch Community Food Bank",
+  "address": "4020 Dundas St W Unit 5",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M6S 2T7",
+  "phone_number": "416-358-0031",
+  "days": "Thursday",
+  "hours": "2:00PM-6:00PM",
+  "notes": ""
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daab"
+  },
+  "name": "Community Share Food Bank - Church of the Ascension",
+  "address": "33 Overland Dr",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M3C 2C3",
+  "phone_number": " 416-441-3209 ",
+  "days": "Wednesday",
+  "hours": "11:00AM-3:00PM",
+  "notes": "Appointment only"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daac"
+  },
+  "name": "Covenant House Toronto",
+  "address": "20 Gerrard St E",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M5B 2P3",
+  "phone_number": "416-598-4898",
+  "days": "Monday-Sunday",
+  "hours": "11:30AM-7:00PM",
+  "notes": "Drop-in Mon-Sun 12 noon-7 pm, includes breakfast 12 noon, lunch 12:30 pm, supper 4 pm. Takeaway meals available Mon-Sun 11:30 am-7 pm. Food bank Fri 12 noon-6:30 pm; ID clinic Fri 1 pm-3 pm; legal resources Fri 12 noon-1:30 pm"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daad"
+  },
+  "name": "Daily Bread Food Bank",
+  "address": "191 New Toronto St",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M8V 2E7",
+  "phone_number": " 416-203-0050 ",
+  "days": "Monday-Friday",
+  "hours": "8:30AM-4:30AM",
+  "notes": ""
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daae"
+  },
+  "name": "Daily Bread Food Bank - New Toronto Street Food Bank",
+  "address": "191 New Toronto St",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M8V 2E7",
+  "phone_number": "416-203-0050",
+  "days": "Tuesday-Saturday",
+  "hours": "10:00AM-6:00PM",
+  "notes": "By appointment only: Tue, Wed 10 am-6 pm, Thu 10 am-3 pm, Fri-Sat 10 am-11:30 am, 1 pm-3 pm"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daaf"
+  },
+  "name": "East End United Regional Ministry - Nourish East End",
+  "address": "1470 Gerrard St E Bsmt",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M4L 2A3",
+  "phone_number": "",
+  "days": "Wednesday",
+  "hours": "9:00AM-4:00PM",
+  "notes": "New clients need to register at dailybread.link2feed.ca and bring the Client ID Number that you will get at the end of the online registration. New clients can also be registered on site as long as they have identification with them"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10dab0"
+  },
+  "name": "Eastview Neighbourhood Community Centre",
+  "address": "86 Blake St",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M4J 3C9",
+  "phone_number": "416-392-1750",
+  "days": "Monday-Sunday",
+  "hours": "Mon-Fri 9:00AM-9:00PM, Saturday 9:00am-4:00pm, Sunday 10:00AM-4:00PM",
+  "notes": ""
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10dab1"
+  },
+  "name": "Eastview Neighbourhood Community Centre - Food Bank",
+  "address": "Commercial Plaza 4020 Dundas St W Unit 5",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M4J 3C9",
+  "phone_number": "416-392-1750 ext 307",
+  "days": "Tuesday & Thursday",
+  "hours": "12:00PM-2:00PM",
+  "notes": ""
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10dab2"
+  },
+  "name": "Emmanuel Life Management Center - Roywood Food Bank",
+  "address": "251 Roywood Dr Community Room",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M3A 2E9",
+  "phone_number": "437-886-4694",
+  "days": "Saturday",
+  "hours": "12:30PM-3:00PM",
+  "notes": ""
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10dab3"
+  },
+  "name": "Ernestine's Women's Shelter - Outreach",
+  "address": "PO Box 141, Station B",
+  "city": "Etobicoke",
+  "provience": "ON",
+  "postal_code": "M9W 5K9",
+  "phone_number": "416-743-1733",
+  "days": "Monday-Sunday",
+  "hours": "10:00AM-5:30PM",
+  "notes": ""
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10dab4"
+  },
+  "name": "Feed It Forward",
+  "address": "2770 Dundas St W",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M5B2P3",
+  "phone_number": "647-879-2433",
+  "days": "Monday-Sunday",
+  "hours": "Mon-Friday 11:00AM-7:00PM, Saturday 11:00AM-6:00PM, Sunday 11:00AM-4:00PM",
+  "notes": "Free emergency meals if needed and free produce outside while supplies last, reduced pricing on groceries"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10dab5"
+  },
+  "name": "Feed Scarborough - Oakridge Food Bank",
+  "address": "3330 Danforth Ave",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M1L 3P3",
+  "phone_number": "416-936-3975",
+  "days": "Wednesday",
+  "hours": "12:30PM-3:00PM",
+  "notes": ""
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10dab6"
+  },
+  "name": "Feed Scarborough - Markham Road Food Bank",
+  "address": "155 Markham Rd",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M1L 3P3",
+  "phone_number": "",
+  "days": "Thursday",
+  "hours": "8:30AM-11:00AM",
+  "notes": ""
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10dab7"
+  },
+  "name": "Feed Scarborough - Clairlea Food Bank",
+  "address": "772 Warden Ave",
+  "city": "Toronto",
+  "provience": "ON",
+  "postal_code": "M1L 3P3",
+  "phone_number": "416-203-0050",
+  "days": "Tuesday-Saturday",
+  "hours": "12:00PM-6:30PM",
+  "notes": "Drop-in, online order pick ups available on Saturday"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10dab8"
+  },
+  "Province": "ON",
+  "Phone Number": "416-205-9888",
+  "days": "Monday-Friday",
+  "hours": "9:00AM-5:00PM",
+  "notes": " Call * no referral required",
+  "address": "490 Sherbourne St, 2nd Fl",
+  "city": "Toronto",
+  "name": "Fife House - Community Programs",
+  "postal_code": "M4X 1K9"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10dab9"
+  },
+  "Province": "ON",
+  "Phone Number": "416-429-4991",
+  "days": "",
+  "hours": "",
+  "notes": "Call Intake for registration information and appointment: 416-429-4991 ext 280",
+  "address": "10 Gateway Blvd",
+  "city": "Toronto",
+  "name": "Flemingdon Health Centre - Food Security",
+  "postal_code": "M3C 3A1"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10daba"
+  },
+  "Province": "ON",
+  "Phone Number": "416-422-4322",
+  "days": "Monday & Wednesday",
+  "hours": "11:30AM-3:30PM",
+  "notes": "Must register in person",
+  "address": "10 Gateway Blvd Bsmt, Unit 154",
+  "city": "Toronto",
+  "name": "Flemingdon Park Community Food Bank",
+  "postal_code": "M3C 3A1"
+},
+{
+  "_id": {
+    "$oid": "687c86bb7ec257df4f10dabb"
+  },
+  "Phone Number": "416-465-6069",
+  "days": "Monday-Friday",
+  "hours": "9:00AM-2:00PM",
+  "notes": "Drop in; call or visit the website for more information",
+  "address": "791 Queen St E",
+  "city": "Toronto",
+  "name": "Fontbonne Ministries - Mustard Seed",
+  "postal_code": "M4M 1H6",
+  "province": "ON"
+}]
