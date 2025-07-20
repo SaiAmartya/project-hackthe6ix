@@ -5,7 +5,7 @@ export default function shelterInfo() {
         <h1 className="text-4xl font-bold text-emerald-700 mb-4">🏠 Understanding Shelter Options</h1>
 
         <p className="text-lg text-gray-700 leading-relaxed">
-          Toronto's shelter system plays a vital role in supporting individuals and families experiencing homelessness. However, shelters often face high demand and vary significantly in terms of availability and amenities.
+          Toronto&apos;s shelter system plays a vital role in supporting individuals and families experiencing homelessness. However, shelters often face high demand and vary significantly in terms of availability and amenities.
         </p>
 
         <p className="text-lg text-gray-700 leading-relaxed">
@@ -24,7 +24,7 @@ export default function shelterInfo() {
         <h2 className="text-2xl font-semibold text-emerald-800 mt-8">Shelter Sectors</h2>
 
         <p className="text-lg text-gray-700 leading-relaxed">
-          To better serve individuals' unique needs, Toronto’s shelters are organized into five primary sectors:
+          To better serve individuals&apos; unique needs, Toronto&apos;s shelters are organized into five primary sectors:
         </p>
 
         <ul className="list-disc list-inside text-gray-700 space-y-1">

@@ -87,6 +87,40 @@ export const getCurrentLocation = (): Promise<LocationData> => {
   });
 };
 
+// Reverse geocoding function to convert lat/lng to street address
+export const reverseGeocode = async (latitude: number, longitude: number): Promise<string | null> => {
+  try {
+    const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!API_KEY) {
+      console.warn('Google Maps API key not found for reverse geocoding');
+      return null;
+    }
+
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${API_KEY}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.status === 'OK' && data.results && data.results.length > 0) {
+      // Get the most specific address (usually the first result)
+      const address = data.results[0].formatted_address;
+      console.log('Reverse geocoded address:', address);
+      return address;
+    } else {
+      console.warn('No geocoding results found:', data.status);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error in reverse geocoding:', error);
+    return null;
+  }
+};
+
 // Generate Google Maps directions URL
 export const getDirectionsUrl = (destination: DecisionLocation, userLocation?: LocationData): string => {
   const destinationQuery = encodeURIComponent(`${destination.location_address}, ${destination.location_postal_code}`);

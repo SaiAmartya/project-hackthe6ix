@@ -5,7 +5,7 @@ import { useState } from 'react';
 export default function Page() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitted(true);
   };
@@ -29,7 +29,7 @@ export default function Page() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold text-emerald-800">How It Works</h2>
           <p className="text-lg text-gray-700 leading-relaxed">
-            Live.ly is powered by a system of AI agents built using Vellum. These agents continuously pull, process, and verify information from trusted sources like the City of Toronto's shelter and food databases, as well as community-based services and nonprofits.
+            Live.ly is powered by a system of AI agents built using Vellum. These agents continuously pull, process, and verify information from trusted sources like the City of Toronto&apos;s shelter and food databases, as well as community-based services and nonprofits.
           </p>
           <p className="text-lg text-gray-700 leading-relaxed">
             When you interact with Live.ly, the app takes into account your current location, time of day, and any information you choose to share. Using this, it recommends the most appropriate, accessible, and currently available resources near you.
@@ -58,7 +58,7 @@ export default function Page() {
 
           <div>
             <label htmlFor="message" className="block text-gray-700 font-medium">Message</label>
-            <textarea id="message" name="message" rows="5" required
+            <textarea id="message" name="message" rows={5} required
               className="w-full p-3 mt-1 border border-gray-300 rounded-xl shadow-sm resize-none focus:ring-emerald-600 focus:border-emerald-600"></textarea>
           </div>
 

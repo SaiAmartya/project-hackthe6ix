@@ -152,6 +152,7 @@ export default function MapView({ locations, userLocation, isUpdating }: MapView
   console.log('MapView render:', {
     totalLocations: locations.length,
     validLocations: validLocations.length,
+    userLocation: userLocation ? `${userLocation.latitude}, ${userLocation.longitude}` : 'none',
   });
 
   return (
@@ -160,11 +161,16 @@ export default function MapView({ locations, userLocation, isUpdating }: MapView
         <MapErrorBoundary>
           <Map
             defaultCenter={position}
-            defaultZoom={12}
+            defaultZoom={userLocation ? 14 : 12}
             gestureHandling={'greedy'}
             disableDefaultUI={false}
-            mapId="your-map-id"
             clickableIcons={false}
+            zoomControl={true}
+            mapTypeControl={false}
+            scaleControl={true}
+            streetViewControl={false}
+            rotateControl={false}
+            fullscreenControl={true}
           >
             <MapMarkers locations={validLocations} userLocation={userLocation} />
           </Map>

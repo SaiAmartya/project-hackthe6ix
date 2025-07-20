@@ -2,6 +2,40 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Handler } from '../../../lib/vellum/controller/route';
 import { CONFIG } from '../../../config';
 
+// Server-side reverse geocoding function
+const reverseGeocodeServerSide = async (latitude: number, longitude: number): Promise<string | null> => {
+  try {
+    const { GOOGLE_MAPS_API_KEY } = CONFIG;
+    if (!GOOGLE_MAPS_API_KEY) {
+      console.warn('Google Maps API key not found for server-side reverse geocoding');
+      return null;
+    }
+
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.status === 'OK' && data.results && data.results.length > 0) {
+      // Get the formatted address from the first (most specific) result
+      const address = data.results[0].formatted_address;
+      console.log('Server-side reverse geocoded address:', address);
+      return address;
+    } else {
+      console.warn('No geocoding results found:', data.status, data.error_message);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error in server-side reverse geocoding:', error);
+    return null;
+  }
+};
+
 // Types for better type safety
 interface ChatRequest {
   message: string;
@@ -117,7 +151,22 @@ export async function POST(request: NextRequest) {
     }
 
     const handler = new Handler(apiKey, workflowID);
-    const locationString = body.location ? 'Toronto' : 'Toronto'; // Can be enhanced for actual geocoding
+    
+    // Get actual user location address instead of hardcoded "Toronto"
+    let locationString = 'Toronto'; // Fallback to Toronto if no location provided or geocoding fails
+    
+    if (body.location && body.location.latitude && body.location.longitude) {
+      console.log('User location provided:', body.location);
+      const geocodedAddress = await reverseGeocodeServerSide(body.location.latitude, body.location.longitude);
+      if (geocodedAddress) {
+        locationString = geocodedAddress;
+        console.log('Using geocoded address for Vellum:', locationString);
+      } else {
+        console.log('Geocoding failed, falling back to Toronto');
+      }
+    } else {
+      console.log('No user location provided, using Toronto as fallback');
+    }
     
     const result = await handler.MessageHandler(
       body.message.trim(), 
