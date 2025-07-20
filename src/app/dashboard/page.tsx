@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { APIProvider, Map, Marker } from '@vis.gl/react-google-maps';
 
@@ -10,12 +10,12 @@ interface LocationData {
   timestamp: number;
 }
 
-interface MessageData {
-  message: string;
-  location: LocationData | null;
-  locationError?: string;
-  timestamp: number;
+interface ChatMessage {
   id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+  locations?: DecisionLocation[];
 }
 
 interface DecisionLocation {
@@ -29,17 +29,83 @@ interface DecisionLocation {
   hours?: string;
 }
 
-interface DecisionData {
-  locations: DecisionLocation[];
+// Raw API response that might have typos
+interface RawLocationResponse {
+  location_name: string;
+  location_address: string;
+  location_postal_code: string;
+  longitude: number | string;
+  latitude?: number | string;
+  lattitude?: number | string; // API typo
+  reasoning?: string;
+  resource_type: 'shelter' | 'food_bank';
+  hours?: string;
 }
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY_HERE';
+
+// Helper function to validate and convert coordinates
+const validateCoordinates = (lat: unknown, lng: unknown): { lat: number; lng: number } | null => {
+  // Convert to numbers if they're strings
+  const latitude = typeof lat === 'string' ? parseFloat(lat) : lat;
+  const longitude = typeof lng === 'string' ? parseFloat(lng) : lng;
+  
+  // Check if they're valid numbers
+  if (typeof latitude !== 'number' || typeof longitude !== 'number' || 
+      isNaN(latitude) || isNaN(longitude) || 
+      !isFinite(latitude) || !isFinite(longitude)) {
+    return null;
+  }
+  
+  // Check if they're within valid coordinate ranges
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    return null;
+  }
+  
+  return { lat: latitude, lng: longitude };
+};
+
+// Helper function to filter and validate locations
+const getValidLocations = (locations: DecisionLocation[]): DecisionLocation[] => {
+  if (!locations || !Array.isArray(locations)) {
+    console.warn('Invalid locations array:', locations);
+    return [];
+  }
+  
+  return locations.filter(location => {
+    if (!location) {
+      console.warn('Null/undefined location found');
+      return false;
+    }
+    
+    const coords = validateCoordinates(location.latitude, location.longitude);
+    if (!coords) {
+      console.warn(`Invalid coordinates for location "${location.location_name}":`, {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        location
+      });
+      return false;
+    }
+    return true;
+  });
+};
 
 const MapComponent = ({ locations, userLocation }: { locations: DecisionLocation[], userLocation: LocationData | null }) => {
   const defaultCenter = { lat: 43.71837, lng: -79.54286 }; // Toronto
   const position = userLocation ? { lat: userLocation.latitude, lng: userLocation.longitude } : defaultCenter;
 
+  // Filter out locations with invalid coordinates
+  const validLocations = getValidLocations(locations);
+
+  console.log('MapComponent render:', {
+    totalLocations: locations.length,
+    validLocations: validLocations.length,
+    locations: validLocations
+  });
+
   const handleMarkerClick = (location: DecisionLocation) => {
+    console.log('Marker clicked:', location);
     const destination = encodeURIComponent(`${location.location_address}, ${location.location_postal_code}`);
     let mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
     
@@ -52,51 +118,121 @@ const MapComponent = ({ locations, userLocation }: { locations: DecisionLocation
   };
 
   return (
-    <Map
-      defaultCenter={position}
-      defaultZoom={10}
-      gestureHandling={'greedy'}
-      disableDefaultUI={false}
-      mapId="your-map-id"
-      clickableIcons={false}
-    >
-      {locations.map((loc) => {
-        const isShelter = loc.resource_type === 'shelter';
-        return (
-          <Marker
-            key={loc.location_name}
-            position={{ lat: loc.latitude, lng: loc.longitude }}
-            title={loc.location_name}
-            onClick={() => handleMarkerClick(loc)}
-            icon={{
-              path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
-              fillColor: isShelter ? '#EA4335' : '#4285F4',
-              fillOpacity: 1,
-              strokeWeight: 0,
-              rotation: 0,
-              scale: 2,
-              anchor: new google.maps.Point(12, 24),
-            }}
-          />
-        );
-      })}
-    </Map>
+    <div className="relative w-full h-full">
+      <Map
+        defaultCenter={position}
+        defaultZoom={12}
+        gestureHandling={'greedy'}
+        disableDefaultUI={false}
+        mapId="your-map-id"
+        clickableIcons={false}
+      >
+        {validLocations.map((loc, index) => {
+          const coords = validateCoordinates(loc.latitude, loc.longitude);
+          if (!coords) {
+            console.warn('Invalid coordinates for marker:', loc);
+            return null;
+          }
+          
+          console.log(`Rendering marker ${index + 1}:`, {
+            name: loc.location_name,
+            coords,
+            type: loc.resource_type
+          });
+          
+          const isShelter = loc.resource_type === 'shelter';
+          return (
+            <Marker
+              key={`${loc.location_name}-${index}`}
+              position={coords}
+              title={loc.location_name}
+              onClick={() => handleMarkerClick(loc)}
+              // Simplified icon to ensure rendering works
+              icon={{
+                url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+                  `<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="8" fill="${isShelter ? '#EA4335' : '#4285F4'}" stroke="white" stroke-width="2"/>
+                    <text x="12" y="16" text-anchor="middle" fill="white" font-size="12" font-weight="bold">${isShelter ? 'S' : 'F'}</text>
+                  </svg>`
+                )}`,
+                scaledSize: new google.maps.Size(24, 24),
+                anchor: new google.maps.Point(12, 12),
+              }}
+            />
+          );
+        })}
+      </Map>
+      
+      {/* Location counter overlay */}
+      {validLocations.length > 0 && (
+        <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow-lg border border-emerald-200">
+          <div className="flex items-center space-x-2 text-sm">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+            <span className="text-emerald-700 font-medium">
+              {validLocations.length} location{validLocations.length !== 1 ? 's' : ''} found
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
+
+// Error boundary component for map rendering
+class MapErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Map component error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center h-full bg-gray-100 rounded-2xl">
+          <div className="text-center p-8">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-red-500 stroke-2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M15 9l-6 6"/>
+                <path d="M9 9l6 6"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Map Loading Error</h3>
+            <p className="text-gray-600 mb-4">There was an issue loading the map. Please refresh the page to try again.</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 export default function Dashboard() {
   const [message, setMessage] = useState('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt' | 'unknown'>('unknown');
-  const [messages, setMessages] = useState<MessageData[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
-  const [decisions, setDecisions] = useState<DecisionData | null>(null);
-
-  const renderDecisions = (decisionData: DecisionData) => {
-    setDecisions(decisionData);
-  };
-
-
+  const [currentLocations, setCurrentLocations] = useState<DecisionLocation[]>([]);
 
   // Check location permission status on component mount
   useEffect(() => {
@@ -128,26 +264,6 @@ export default function Dashboard() {
         });
     }
   }, [locationPermission, currentLocation]);
-
-  // Debug: Add function to view stored messages (can be removed in production)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      interface WindowWithDebug extends Window {
-        viewStoredMessages?: () => MessageData[];
-        clearStoredMessages?: () => void;
-      }
-      const windowWithDebug = window as WindowWithDebug;
-      
-      windowWithDebug.viewStoredMessages = () => {
-        console.log('Stored messages:', messages);
-        return messages;
-      };
-      windowWithDebug.clearStoredMessages = () => {
-        setMessages([]);
-        console.log('Messages cleared');
-      };
-    }
-  }, [messages]);
 
   const getCurrentLocation = (): Promise<LocationData> => {
     return new Promise((resolve, reject) => {
@@ -191,105 +307,137 @@ export default function Dashboard() {
     });
   };
 
-  const handleSendMessage = async () => {
-    if (!message.trim()) return;
+  const sendMessageToAPI = async (messageText: string, location?: LocationData) => {
+    // Include the current user message in chat history
+    const chatHistory = [
+      ...chatMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })),
+      {
+        role: 'user' as const,
+        content: messageText
+      }
+    ];
 
+    const requestBody = {
+      message: messageText,
+      location: location ? {
+        latitude: location.latitude,
+        longitude: location.longitude
+      } : undefined,
+      chatHistory
+    };
+
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to send message');
+    }
+
+    const responseData = await response.json();
+    
+    // Validate and sanitize location data if present
+    if (responseData.type === 'locations' && responseData.data?.locations) {
+      responseData.data.locations = responseData.data.locations.map((loc: RawLocationResponse): DecisionLocation => {
+        // Fix the API typo: 'lattitude' should be 'latitude'
+        const latitude = loc.latitude || loc.lattitude;
+        const longitude = loc.longitude;
+        
+        return {
+          ...loc,
+          latitude: typeof latitude === 'string' ? parseFloat(latitude) : (latitude as number),
+          longitude: typeof longitude === 'string' ? parseFloat(longitude) : longitude,
+        };
+      }).filter((loc: DecisionLocation) => {
+        const coords = validateCoordinates(loc.latitude, loc.longitude);
+        if (!coords) {
+          console.warn(`Filtering out location with invalid coordinates: ${loc.location_name}`, {
+            latitude: loc.latitude,
+            longitude: loc.longitude
+          });
+          return false;
+        }
+        return true;
+      });
+      
+      console.log('Processed locations:', responseData.data.locations.length, responseData.data.locations);
+    }
+
+    return responseData;
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || isSending) return;
+
+    setIsSending(true);
     setIsGettingLocation(true);
     
-    const messageData: MessageData = {
-      message: message.trim(),
-      location: null,
-      timestamp: Date.now(),
-      id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const userMessage: ChatMessage = {
+      id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      role: 'user',
+      content: message.trim(),
+      timestamp: Date.now()
     };
+
+    // Add user message immediately
+    setChatMessages(prev => [...prev, userMessage]);
+    setMessage('');
 
     try {
       // Attempt to get current location
-      const location = await getCurrentLocation();
-      messageData.location = location;
-      
-      // Update current location state and map if it's different
-      if (!currentLocation || 
-          Math.abs(currentLocation.latitude - location.latitude) > 0.001 ||
-          Math.abs(currentLocation.longitude - location.longitude) > 0.001) {
-        setCurrentLocation(location);
+      let location = currentLocation;
+      if (!location) {
+        try {
+          location = await getCurrentLocation();
+          setCurrentLocation(location);
+        } catch (error) {
+          console.log('Could not get location:', error);
+        }
       }
+
+      // Send message to API
+      const response = await sendMessageToAPI(userMessage.content, location || undefined);
       
-      console.log('Message sent with location:', {
-        message: messageData.message,
-        location: {
-          latitude: location.latitude,
-          longitude: location.longitude,
-          accuracy: `${location.accuracy}m`,
-          timestamp: new Date(location.timestamp).toISOString()
-        },
-        sentAt: new Date(messageData.timestamp).toISOString()
-      });
-      
+      // Create assistant message
+      const assistantMessage: ChatMessage = {
+        id: `assistant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        role: 'assistant',
+        content: response.type === 'locations' ? 'Here are some recommended locations for you:' : response.data,
+        timestamp: Date.now(),
+        locations: response.type === 'locations' ? response.data.locations : undefined
+      };
+
+      setChatMessages(prev => [...prev, assistantMessage]);
+
+      // Update map with new locations if provided
+      if (response.type === 'locations' && response.data.locations) {
+        setCurrentLocations(response.data.locations);
+      }
+
     } catch (error) {
-      messageData.locationError = error instanceof Error ? error.message : 'Failed to get location';
+      console.error('Error sending message:', error);
       
-      console.log('Message sent without location:', {
-        message: messageData.message,
-        locationError: messageData.locationError,
-        sentAt: new Date(messageData.timestamp).toISOString()
-      });
+      // Add error message
+      const errorMessage: ChatMessage = {
+        id: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        role: 'assistant',
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: Date.now()
+      };
+
+      setChatMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsGettingLocation(false);
+      setIsSending(false);
     }
-
-    // Store the message data
-    setMessages(prev => [...prev, messageData]);
-    
-    // TODO: Implement Vellum integration here
-    // You can now send messageData to your backend/API
-    
-    setMessage('');
-  };
-
-  // Sample function to test renderDecisions functionality
-  const testRenderDecisions = () => {
-    const sampleData: DecisionData = {
-      "locations": [
-        {
-          "location_name": "COSTI Immigrant Services",
-          "location_address": "640 Dixon Rd.",
-          "location_postal_code": "M9W 1J1",
-          "longitude": -79.4153,
-          "latitude": 43.59418,
-          "reasoning": "this is some sample reasoning… hopefully it's displayed properly.",
-          "resource_type": "shelter"
-        },
-        {
-          "location_name": "351 Lakeshore Respite Services",
-          "location_address": "195 Princes' Blvd",
-          "location_postal_code": "M6K 3C3",
-          "longitude": -79.44353,
-          "latitude": 43.69418,
-          "reasoning": "this is some sample reasoning… hopefully it's displayed properly.",
-          "resource_type": "shelter"
-        },
-        {
-          "location_name": "Allan Gardens Food Bank",
-          "location_address": "353 Sherbourne St",
-          "location_postal_code": "M5A 2S3",
-          "longitude": -79.49353,
-          "latitude": 43.64418,
-          "hours": "3pm-6pm",
-          "resource_type": "food_bank"
-        },
-        {
-          "location_name": "Bethany Church Food Bank",
-          "location_address": "1041 Pape Ave",
-          "location_postal_code": "M4K 3W1",
-          "longitude": -79.40353,
-          "latitude": 43.54418,
-          "hours": "8am - 8pm",
-          "resource_type": "food_bank"
-        }
-      ]
-    };
-    renderDecisions(sampleData);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -336,7 +484,9 @@ export default function Dashboard() {
         {/* Map Container */}
         <div className="flex-1 relative mx-4 md:mx-6 mb-4 rounded-2xl overflow-hidden shadow-2xl border border-emerald-100">
           <APIProvider apiKey={API_KEY}>
-            <MapComponent locations={decisions?.locations || []} userLocation={currentLocation} />
+            <MapErrorBoundary>
+              <MapComponent locations={currentLocations} userLocation={currentLocation} />
+            </MapErrorBoundary>
           </APIProvider>
           
           {/* Location indicator overlay */}
@@ -409,69 +559,25 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Decisions Overlay */}
-              {decisions && (
-                <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-2xl z-10 p-4 md:p-6 overflow-y-auto">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl md:text-2xl font-bold text-emerald-800">Recommended Locations</h3>
-                    <button 
-                      onClick={() => setDecisions(null)}
-                      className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2">
-                        <path d="M18 6L6 18M6 6l12 12"/>
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  <div className="grid gap-3">
-                    {decisions.locations.map((location, index) => {
-                      const isShelter = location.resource_type === 'shelter';
-                      const cardBg = isShelter ? 'from-red-50 to-pink-50' : 'from-blue-50 to-cyan-50';
-                      const borderColor = isShelter ? 'border-red-200' : 'border-blue-200';
-                      const iconBg = isShelter ? 'from-red-500 to-pink-600' : 'from-blue-500 to-cyan-600';
-                      
-                      return (
-                        <div key={index} className={`bg-gradient-to-r ${cardBg} border ${borderColor} rounded-xl p-3 shadow-lg hover:shadow-xl transition-all duration-200`}>
-                          <div className="flex items-center space-x-3">
-                            <div className={`w-10 h-10 bg-gradient-to-br ${iconBg} rounded-lg flex items-center justify-center shadow-lg flex-shrink-0`}>
-                              {isShelter ? (
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-white">
-                                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-                                </svg>
-                              ) : (
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-white">
-                                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10h5c1.1 0 2-.9 2-2v-7c0-5.52-4.48-10-10-10zm-1 17h-1c-1.1 0-2-.9-2-2s.9-2 2-2h1v4zm0-6H9c-1.1 0-2-.9-2-2s.9-2 2-2h2V9zm2-4h2c1.1 0 2 .9 2 2s-.9 2-2 2h-2V9z"/>
-                                </svg>
-                              )}
-                            </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-base font-semibold text-gray-800 mb-1">{location.location_name}</h4>
-                              
-                              <div className="flex items-center justify-between">
-                                {location.hours && (
-                                  <div className="flex items-center text-gray-600 text-sm">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2 mr-1 flex-shrink-0">
-                                      <circle cx="12" cy="12" r="10"/>
-                                      <polyline points="12,6 12,12 16,14"/>
-                                    </svg>
-                                    <span>{location.hours}</span>
-                                  </div>
-                                )}
-                                
-                                {location.reasoning && (
-                                  <div className="text-gray-600 text-xs bg-white/50 rounded px-2 py-1 max-w-xs truncate">
-                                    {location.reasoning}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+              {/* Chat Messages Display */}
+              {chatMessages.length > 0 && (
+                <div className="mb-4 max-h-60 overflow-y-auto space-y-3 p-4 bg-gray-50/50 rounded-xl">
+                  {chatMessages.map((msg) => (
+                    <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                        msg.role === 'user' 
+                          ? 'bg-emerald-600 text-white' 
+                          : 'bg-white border border-gray-200 text-gray-800'
+                      }`}>
+                        <p className="text-sm">{msg.content}</p>
+                        {msg.locations && (
+                          <div className="mt-2 text-xs">
+                            <p className="font-medium">Showing {msg.locations.length} locations on map</p>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -483,7 +589,8 @@ export default function Dashboard() {
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Where can I sleep tonight..?"
-                    className="w-full bg-transparent px-2 py-2 text-gray-700 placeholder-gray-500 focus:outline-none text-base md:text-lg resize-none overflow-hidden"
+                    disabled={isSending}
+                    className="w-full bg-transparent px-2 py-2 text-gray-700 placeholder-gray-500 focus:outline-none text-base md:text-lg resize-none overflow-hidden disabled:opacity-50"
                     rows={1}
                     style={{
                       height: 'auto',
@@ -502,11 +609,11 @@ export default function Dashboard() {
                 </div>
                 <button
                   onClick={handleSendMessage}
-                  disabled={!message.trim() || isGettingLocation}
+                  disabled={!message.trim() || isSending}
                   className="bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold px-4 py-2.5 md:px-6 md:py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md flex-shrink-0"
                 >
                   <span className="flex items-center space-x-1 md:space-x-2">
-                    {isGettingLocation ? (
+                    {isSending ? (
                       <>
                         <span className="hidden sm:inline text-sm md:text-base">SENDING...</span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2 animate-spin">
@@ -530,21 +637,24 @@ export default function Dashboard() {
               <div className="mt-4 md:mt-6 flex flex-wrap gap-2 md:gap-3 justify-center sm:justify-start">
                 <button 
                   onClick={() => setMessage("Where can I stay tonight?")}
-                  className="px-3 py-1.5 md:px-4 md:py-2 bg-emerald-100 text-emerald-700 rounded-full text-xs md:text-sm font-medium hover:bg-emerald-200 transition-colors"
+                  disabled={isSending}
+                  className="px-3 py-1.5 md:px-4 md:py-2 bg-emerald-100 text-emerald-700 rounded-full text-xs md:text-sm font-medium hover:bg-emerald-200 transition-colors disabled:opacity-50"
                 >
                   Find Shelters
                 </button>
                 <button 
                   onClick={() => setMessage("Where can I eat for lunch?")}
-                  className="px-3 py-1.5 md:px-4 md:py-2 bg-blue-100 text-blue-700 rounded-full text-xs md:text-sm font-medium hover:bg-blue-200 transition-colors"
+                  disabled={isSending}
+                  className="px-3 py-1.5 md:px-4 md:py-2 bg-blue-100 text-blue-700 rounded-full text-xs md:text-sm font-medium hover:bg-blue-200 transition-colors disabled:opacity-50"
                 >
                   Food Banks
                 </button>
                 <button 
-                  onClick={testRenderDecisions}
-                  className="px-3 py-1.5 md:px-4 md:py-2 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm font-medium hover:bg-purple-200 transition-colors"
+                  onClick={() => setMessage("I need help finding mental health resources")}
+                  disabled={isSending}
+                  className="px-3 py-1.5 md:px-4 md:py-2 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm font-medium hover:bg-purple-200 transition-colors disabled:opacity-50"
                 >
-                  Test Decisions
+                  Mental Health
                 </button>
               </div>
             </div>

@@ -1,17 +1,17 @@
 import { VellumClient, Vellum } from "vellum-ai";
-import { Res } from "../../lib/types/init";
-import { CONFIG } from "../../../../config";
+import { Res } from "../types/init";
+import { CONFIG } from "../../../config";
 
 export class Processor {
   private client: VellumClient;
 
   constructor(apiKey?: string) {
-    const key = 'xNXYFeoy.3kop5c9qFNCk8YcEKirvrc1TjM12JSez' // apiKey ?? CONFIG.VELLUM_API_KEY;
+    const key = process.env.VELLUM_API_KEY ?? apiKey ?? CONFIG.VELLUM_API_KEY;
     if (!key) throw new Error("Missing VELLUM_API_KEY");
     this.client = new VellumClient({ apiKey: key });
   }
 
-  async Call(workflowID: string, userInput: string, location?: string, chatHistory?: unknown[]
+  async Call(workflowID: string, userInput: string, location?: string, chatHistory?: Vellum.ChatMessageRequest[]
   ): Promise<Res> {
     try {
       const timestamp = new Date().toISOString();
@@ -25,10 +25,7 @@ export class Processor {
         {
           type: "CHAT_HISTORY",
           name: "chat_history",
-          value:
-            Array.isArray(chatHistory) && chatHistory.length > 0
-              ? (chatHistory as Vellum.ChatMessageRequest[])
-              : [{ role: Vellum.ChatMessageRole.User, text: userInput }],
+          value: chatHistory && chatHistory.length > 0 ? chatHistory : [],
         },
         {
           type: "STRING",
@@ -75,8 +72,12 @@ export class Processor {
     }
   }
 
-  async Input(workflowID: string, userInput: string, location?: string
+  async Input(
+    workflowID: string, 
+    userInput: string, 
+    location?: string, 
+    chatHistory?: Vellum.ChatMessageRequest[]
   ): Promise<Res> {
-    return this.Call("49b68e23-1a27-426c-9109-39d58194d3f5", userInput, location);
+    return this.Call(workflowID, userInput, location, chatHistory);
   }
 }

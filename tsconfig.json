@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "esnext",
     "target": "es2020",
     "lib": [
       "dom",
@@ -32,9 +32,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "src/app/backend/lib/controller/route.ts",
-    "src/app/backend/main.js"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
