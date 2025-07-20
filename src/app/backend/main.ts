@@ -1,20 +1,27 @@
+import "dotenv/config";
+import { CONFIG } from "../../config";
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { Handler } = require("./lib/controller/route");
 
-const apiKey = process.env.VELLUM_API_KEY || ""
-const promptDeploymentName = process.env.WORKFLOWID || process.env.ALTWORKFLOWID || "";
+const apiKey = CONFIG.VELLUM_API_KEY || "";
+const promptDeploymentName = CONFIG.WORKFLOWID || CONFIG.ALTWORKFLOWID || "";
 
-const handler = new Handler(apiKey, promptDeploymentName)
+const handler = new Handler(apiKey, promptDeploymentName);
 
 async function main() {
-  const userInput = "I want to know where I can sleep"
-  const result = await handler.MessageHandler(userInput)
+  const userInput = "Where should I eat tomorrow?";
+  const userInput2 = "Probably something for breakfast.";
+  const result = await handler.MessageHandler(userInput);
+  console.log(result)
+  const result2 = await handler.MessageHandler(userInput2)
+  console.log(result2)
 
-  if (result.status === 'success') {
-    console.log('Success:', result.data);
+  if (result.status === "success") {
+    console.log("Success:", result.data);
   } else {
-    console.log('Error:', result.message);
+    console.log("Error:", result.message);
   }
 }
 
-main()
+main();

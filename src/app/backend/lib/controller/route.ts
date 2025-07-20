@@ -10,10 +10,11 @@ export class Handler {
     this.process = new Processor(apiKey)
   }
 
-  async MessageHandler(userInput: string): Promise<Res> {
+  async MessageHandler(userInput: string, location: string): Promise<Res> {
     console.log("message test reached, view user input ", userInput)
+    location = "Toronto"
 
-    const result = await this.process.Input(userInput, this.workflowID)
+    const result = await this.process.Input(this.workflowID, userInput, location)
     return result
   }
 }
