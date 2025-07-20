@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@vis.gl/react-google-maps": "^1.5.4",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "next": "15.4.2",
