@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { APIProvider, Map, Marker } from '@vis.gl/react-google-maps';
 
 interface LocationData {
   latitude: number;
@@ -17,19 +18,85 @@ interface MessageData {
   id: string;
 }
 
+interface DecisionLocation {
+  location_name: string;
+  location_address: string;
+  location_postal_code: string;
+  longitude: number;
+  latitude: number;
+  reasoning?: string;
+  resource_type: 'shelter' | 'food_bank';
+  hours?: string;
+}
+
+interface DecisionData {
+  locations: DecisionLocation[];
+}
+
+const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY_HERE';
+
+const MapComponent = ({ locations, userLocation }: { locations: DecisionLocation[], userLocation: LocationData | null }) => {
+  const defaultCenter = { lat: 43.71837, lng: -79.54286 }; // Toronto
+  const position = userLocation ? { lat: userLocation.latitude, lng: userLocation.longitude } : defaultCenter;
+
+  const handleMarkerClick = (location: DecisionLocation) => {
+    const destination = encodeURIComponent(`${location.location_address}, ${location.location_postal_code}`);
+    let mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+    
+    if (userLocation) {
+      const origin = encodeURIComponent(`${userLocation.latitude},${userLocation.longitude}`);
+      mapsUrl += `&origin=${origin}`;
+    }
+    
+    window.open(mapsUrl, '_blank');
+  };
+
+  return (
+    <Map
+      defaultCenter={position}
+      defaultZoom={10}
+      gestureHandling={'greedy'}
+      disableDefaultUI={false}
+      mapId="your-map-id"
+      clickableIcons={false}
+    >
+      {locations.map((loc) => {
+        const isShelter = loc.resource_type === 'shelter';
+        return (
+          <Marker
+            key={loc.location_name}
+            position={{ lat: loc.latitude, lng: loc.longitude }}
+            title={loc.location_name}
+            onClick={() => handleMarkerClick(loc)}
+            icon={{
+              path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
+              fillColor: isShelter ? '#EA4335' : '#4285F4',
+              fillOpacity: 1,
+              strokeWeight: 0,
+              rotation: 0,
+              scale: 2,
+              anchor: new google.maps.Point(12, 24),
+            }}
+          />
+        );
+      })}
+    </Map>
+  );
+};
+
 export default function Dashboard() {
   const [message, setMessage] = useState('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt' | 'unknown'>('unknown');
   const [messages, setMessages] = useState<MessageData[]>([]);
   const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
-  const [mapUrl, setMapUrl] = useState('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d184552.2245834942!2d-79.5428656837306!3d43.71837093300166!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89d4cb90d7c63ba5%3A0x323555502ab4c477!2sToronto%2C%20ON%2C%20Canada!5e0!3m2!1sen!2sus!4v1703825432123!5m2!1sen!2sus');
+  const [decisions, setDecisions] = useState<DecisionData | null>(null);
 
-  const generateMapUrlFallback = (latitude: number, longitude: number) => {
-    // Generate a Google Maps embed URL centered on the user's location
-    const zoom = 15;
-    return `https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d11547.0!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f${zoom}.1!5e0!3m2!1sen!2sus`;
+  const renderDecisions = (decisionData: DecisionData) => {
+    setDecisions(decisionData);
   };
+
+
 
   // Check location permission status on component mount
   useEffect(() => {
@@ -55,13 +122,6 @@ export default function Dashboard() {
       getCurrentLocation()
         .then((location) => {
           setCurrentLocation(location);
-          const newMapUrl = generateMapUrlFallback(location.latitude, location.longitude);
-          setMapUrl(newMapUrl);
-          console.log('Map centered on user location:', {
-            latitude: location.latitude,
-            longitude: location.longitude,
-            mapUrl: newMapUrl
-          });
         })
         .catch((error) => {
           console.log('Could not get initial location for map:', error.message);
@@ -153,8 +213,6 @@ export default function Dashboard() {
           Math.abs(currentLocation.latitude - location.latitude) > 0.001 ||
           Math.abs(currentLocation.longitude - location.longitude) > 0.001) {
         setCurrentLocation(location);
-        const newMapUrl = generateMapUrlFallback(location.latitude, location.longitude);
-        setMapUrl(newMapUrl);
       }
       
       console.log('Message sent with location:', {
@@ -187,6 +245,51 @@ export default function Dashboard() {
     // You can now send messageData to your backend/API
     
     setMessage('');
+  };
+
+  // Sample function to test renderDecisions functionality
+  const testRenderDecisions = () => {
+    const sampleData: DecisionData = {
+      "locations": [
+        {
+          "location_name": "COSTI Immigrant Services",
+          "location_address": "640 Dixon Rd.",
+          "location_postal_code": "M9W 1J1",
+          "longitude": -79.4153,
+          "latitude": 43.59418,
+          "reasoning": "this is some sample reasoning… hopefully it's displayed properly.",
+          "resource_type": "shelter"
+        },
+        {
+          "location_name": "351 Lakeshore Respite Services",
+          "location_address": "195 Princes' Blvd",
+          "location_postal_code": "M6K 3C3",
+          "longitude": -79.44353,
+          "latitude": 43.69418,
+          "reasoning": "this is some sample reasoning… hopefully it's displayed properly.",
+          "resource_type": "shelter"
+        },
+        {
+          "location_name": "Allan Gardens Food Bank",
+          "location_address": "353 Sherbourne St",
+          "location_postal_code": "M5A 2S3",
+          "longitude": -79.49353,
+          "latitude": 43.64418,
+          "hours": "3pm-6pm",
+          "resource_type": "food_bank"
+        },
+        {
+          "location_name": "Bethany Church Food Bank",
+          "location_address": "1041 Pape Ave",
+          "location_postal_code": "M4K 3W1",
+          "longitude": -79.40353,
+          "latitude": 43.54418,
+          "hours": "8am - 8pm",
+          "resource_type": "food_bank"
+        }
+      ]
+    };
+    renderDecisions(sampleData);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -232,18 +335,9 @@ export default function Dashboard() {
       <div className="relative z-10 flex-1 flex flex-col h-[calc(100vh-80px)]">
         {/* Map Container */}
         <div className="flex-1 relative mx-4 md:mx-6 mb-4 rounded-2xl overflow-hidden shadow-2xl border border-emerald-100">
-          {/* Map iframe */}
-          <iframe
-            src={mapUrl}
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            className="absolute inset-0"
-            title="Interactive Map"
-          ></iframe>
+          <APIProvider apiKey={API_KEY}>
+            <MapComponent locations={decisions?.locations || []} userLocation={currentLocation} />
+          </APIProvider>
           
           {/* Location indicator overlay */}
           {currentLocation && (
@@ -315,6 +409,72 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* Decisions Overlay */}
+              {decisions && (
+                <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-2xl z-10 p-4 md:p-6 overflow-y-auto">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl md:text-2xl font-bold text-emerald-800">Recommended Locations</h3>
+                    <button 
+                      onClick={() => setDecisions(null)}
+                      className="w-8 h-8 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <div className="grid gap-3">
+                    {decisions.locations.map((location, index) => {
+                      const isShelter = location.resource_type === 'shelter';
+                      const cardBg = isShelter ? 'from-red-50 to-pink-50' : 'from-blue-50 to-cyan-50';
+                      const borderColor = isShelter ? 'border-red-200' : 'border-blue-200';
+                      const iconBg = isShelter ? 'from-red-500 to-pink-600' : 'from-blue-500 to-cyan-600';
+                      
+                      return (
+                        <div key={index} className={`bg-gradient-to-r ${cardBg} border ${borderColor} rounded-xl p-3 shadow-lg hover:shadow-xl transition-all duration-200`}>
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-10 h-10 bg-gradient-to-br ${iconBg} rounded-lg flex items-center justify-center shadow-lg flex-shrink-0`}>
+                              {isShelter ? (
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-white">
+                                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                                </svg>
+                              ) : (
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-white">
+                                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10h5c1.1 0 2-.9 2-2v-7c0-5.52-4.48-10-10-10zm-1 17h-1c-1.1 0-2-.9-2-2s.9-2 2-2h1v4zm0-6H9c-1.1 0-2-.9-2-2s.9-2 2-2h2V9zm2-4h2c1.1 0 2 .9 2 2s-.9 2-2 2h-2V9z"/>
+                                </svg>
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-base font-semibold text-gray-800 mb-1">{location.location_name}</h4>
+                              
+                              <div className="flex items-center justify-between">
+                                {location.hours && (
+                                  <div className="flex items-center text-gray-600 text-sm">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="stroke-2 mr-1 flex-shrink-0">
+                                      <circle cx="12" cy="12" r="10"/>
+                                      <polyline points="12,6 12,12 16,14"/>
+                                    </svg>
+                                    <span>{location.hours}</span>
+                                  </div>
+                                )}
+                                
+                                {location.reasoning && (
+                                  <div className="text-gray-600 text-xs bg-white/50 rounded px-2 py-1 max-w-xs truncate">
+                                    {location.reasoning}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Chat Input */}
               <div className="flex items-end space-x-3 bg-gray-50/80 rounded-2xl border-2 border-emerald-100 p-3 hover:border-emerald-200 transition-colors">
                 <div className="flex-1">
@@ -380,6 +540,12 @@ export default function Dashboard() {
                 >
                   Food Banks
                 </button>
+                <button 
+                  onClick={testRenderDecisions}
+                  className="px-3 py-1.5 md:px-4 md:py-2 bg-purple-100 text-purple-700 rounded-full text-xs md:text-sm font-medium hover:bg-purple-200 transition-colors"
+                >
+                  Test Decisions
+                </button>
               </div>
             </div>
           </div>
@@ -422,4 +588,4 @@ export default function Dashboard() {
       </div>
     </div>
   );
-} 
+}
